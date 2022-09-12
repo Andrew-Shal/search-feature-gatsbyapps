@@ -27,7 +27,7 @@ const SearchPage = () => {
 
 	const handleSearch = async (searchParams) => {
 		console.log("search params: ", searchParams)
-		setSearchResults(searchParams)
+		setSearchParams(searchParams)
 
 		if (searchParams.searchText == "") {
 			setSearchResults(null)
