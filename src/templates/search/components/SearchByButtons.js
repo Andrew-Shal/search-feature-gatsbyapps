@@ -6,14 +6,21 @@ const S = {
 		width: 100%;
 		display: flex;
 		flex-wrap: wrap;
+		justify-content: center;
+		padding-bottom: 20px;
 	`,
 	SearchByButton: styled.a`
 		background: #e9d66c;
 		color: #fff;
-		width: 50%;
 		text-decoration: none;
-		@media (min-width: 768px) {
-			width: 25%;
+		min-width: 80px;
+		max-width: 100px;
+		padding: 10px 15px;
+		border-radius: 4px;
+		margin: 5px 5px;
+		text-align: center;
+		:hover {
+			background: #caba5b;
 		}
 	`,
 }

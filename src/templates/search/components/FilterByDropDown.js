@@ -3,7 +3,9 @@ import styled from "styled-components"
 
 const F = {
 	FilterByDropDown: styled.div`
+		width: 150px;
 		select {
+			width: 100%;
 			option {
 			}
 		}

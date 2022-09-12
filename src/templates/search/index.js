@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState } from "react"
 import styled from "styled-components"
 import SearchBarContainer from "./components/SearchBarContainer"
 
@@ -11,8 +11,8 @@ const SearchResultsContainer = () => {
 }
 
 const SearchPage = () => {
-	const [searchParams, useSearchParams] = setState(null)
-	const [searchResults, useSearchResults] = setState([])
+	const [searchParams, setSearchParams] = useState(null)
+	const [searchResults, setearchResults] = useState([])
 
 	const handleSearch = (searchParams) => {
 		console.log("search params: ", searchParams)
@@ -25,3 +25,5 @@ const SearchPage = () => {
 		</SP.SearchPage>
 	)
 }
+
+export default SearchPage
