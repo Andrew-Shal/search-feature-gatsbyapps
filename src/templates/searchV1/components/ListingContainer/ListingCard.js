@@ -26,18 +26,25 @@ const ListingCard = ({ listingCardData }) => {
 	return (
 		<LC.StyledListingCard>
 			<LC.StyledItemData>{listingCardData.id}</LC.StyledItemData>
-			<LC.StyledItemData> {listingCardData.listingTitle}</LC.StyledItemData>
+			<LC.StyledItemData> {listingCardData.createdAt}</LC.StyledItemData>
 			<LC.StyledItemData>
+				{listingCardData.listingBuildingStatus}
+			</LC.StyledItemData>
+			<LC.StyledItemData>
+				{" "}
 				{listingCardData.listingLocation}
 			</LC.StyledItemData>
-			<LC.StyledItemData> {listingCardData.slug}</LC.StyledItemData>
-			<LC.StyledItemData>
-				{listingCardData.listingBuildingStatus ||
-					listingCardData.listingBuildStatus}
-			</LC.StyledItemData>
-			<LC.StyledItemData> {listingCardData.listingStyle}</LC.StyledItemData>
 			<LC.StyledItemData>
 				{listingCardData.listingPriceRange}
+			</LC.StyledItemData>
+			<LC.StyledItemData> {listingCardData.listingStyle}</LC.StyledItemData>
+			<LC.StyledItemData>{listingCardData.listingTitle}</LC.StyledItemData>
+			<LC.StyledItemData>{listingCardData.itemCountry.id}</LC.StyledItemData>
+			<LC.StyledItemData>
+				{listingCardData.itemCountry.countrySlug}
+			</LC.StyledItemData>
+			<LC.StyledItemData>
+				{listingCardData.itemCountry.countryName}
 			</LC.StyledItemData>
 		</LC.StyledListingCard>
 	)

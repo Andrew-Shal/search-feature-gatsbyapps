@@ -2,7 +2,7 @@ import React, { useState } from "react"
 import { graphql } from "gatsby"
 
 const SearchPage = ({ data }) => {
-	const countries = data.allGraphCmsCountry.nodes
+	const countries = data.allGraphCmsItemCountry.nodes
 
 	const CountryLiWrapper = ({ country }) => {
 		return (
@@ -225,6 +225,7 @@ const SearchPage = ({ data }) => {
 		console.log("selectedOtherFilter1", selectedOtherFilter1)
 		setSelectedOtherFilter1(selectedValue)
 	}
+	console.log(data.allGraphCmsItemCountry.nodes)
 
 	return (
 		<React.Fragment>
@@ -262,10 +263,10 @@ const SearchPage = ({ data }) => {
 					searchResults={searchResults}
 					searchingBy={searchBy}
 				/>
-				<ul>
-					static from json
-					<CountriesULWrapper countries={countries} />
-				</ul>
+				<ul>static from json</ul>
+				{data.allGraphCmsItemCountry.nodes.map((country) => (
+					<li>{country.countryName}</li>
+				))}
 			</div>
 		</React.Fragment>
 	)
@@ -273,11 +274,9 @@ const SearchPage = ({ data }) => {
 
 export const query = graphql`
 	query GetAllCountires {
-		allGraphCmsCountry {
+		allGraphCmsItemCountry {
 			nodes {
-				name
-				id
-				description
+				countryName
 			}
 		}
 	}

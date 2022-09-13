@@ -1,17 +1,39 @@
-fragment ScheduledOperation on ScheduledOperation {
+fragment ItemCountry on ItemCountry {
   stage
-  rawPayload
-  errorMessage
-  description
   publishedAt
   updatedAt
   createdAt
   remoteId: id
-  release {
-    ... on ScheduledRelease {
-      remoteTypeName: __typename
-      remoteId: id
+  countryName
+  countrySlug
+  countryImage {
+    ... on GalleryImage {
       stage
+      id
+      imageAltText
+      imagePhoto {
+        ... on Asset {
+          remoteTypeName: __typename
+          remoteId: id
+          locale
+          stage
+        }
+      }
+    }
+  }
+  countryGalleryImages {
+    ... on GalleryImage {
+      stage
+      id
+      imageAltText
+      imagePhoto {
+        ... on Asset {
+          remoteTypeName: __typename
+          remoteId: id
+          locale
+          stage
+        }
+      }
     }
   }
   publishedBy {
@@ -35,35 +57,36 @@ fragment ScheduledOperation on ScheduledOperation {
       stage
     }
   }
-  status
-  affectedDocuments {
-    ... on Asset {
-      remoteTypeName: __typename
-      remoteId: id
-      locale
-      stage
-    }
-    ... on ItemCountry {
-      remoteTypeName: __typename
-      remoteId: id
-      stage
-    }
+  itemHotels {
     ... on ItemHotel {
       remoteTypeName: __typename
       remoteId: id
       stage
     }
+  }
+  itemLand {
     ... on ItemLand {
       remoteTypeName: __typename
       remoteId: id
       stage
     }
+  }
+  itemRealEstates {
     ... on ItemRealEstate {
       remoteTypeName: __typename
       remoteId: id
       stage
     }
+  }
+  itemRents {
     ... on ItemRent {
+      remoteTypeName: __typename
+      remoteId: id
+      stage
+    }
+  }
+  scheduledIn {
+    ... on ScheduledOperation {
       remoteTypeName: __typename
       remoteId: id
       stage
