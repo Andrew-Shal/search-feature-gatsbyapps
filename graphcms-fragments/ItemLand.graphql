@@ -44,7 +44,7 @@ fragment ItemLand on ItemLand {
       stage
     }
   }
-  itemCountries {
+  itemCountry {
     ... on ItemCountry {
       remoteTypeName: __typename
       remoteId: id
@@ -52,7 +52,7 @@ fragment ItemLand on ItemLand {
     }
   }
   listingStyle
-  listingBuildStatus
+  listingBuildingStatus
   scheduledIn {
     ... on ScheduledOperation {
       remoteTypeName: __typename

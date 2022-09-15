@@ -52,7 +52,7 @@ fragment ItemHotel on ItemHotel {
     }
   }
   listingStyle
-  listingBuildStatus
+  listingBuildingStatus
   scheduledIn {
     ... on ScheduledOperation {
       remoteTypeName: __typename
