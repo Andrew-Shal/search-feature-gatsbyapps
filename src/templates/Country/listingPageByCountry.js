@@ -83,7 +83,7 @@ const ListingPageByCountry = ({ data }) => {
                 dataSource={dataSource}
                 onSearchResults={handleSearchResults}
             />
-            <Listings listingsData={searchResults} />
+            {searchResults?.length ? <Listings listingsData={searchResults} /> : <h3>No results found</h3>}
         </div>
     )
 }

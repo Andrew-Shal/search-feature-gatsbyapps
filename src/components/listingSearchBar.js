@@ -21,6 +21,20 @@ const S = {
         display: flex;
         width: 450px;
     `,
+    ClearBtn: styled.a`
+        background: #2e6a76;
+        color: #fff;
+        text-decoration: none;
+        min-width: 80px;
+        max-width: 100px;
+        margin: 0px 5px;
+        padding: 5px 10px;
+        border-radius: 4px;
+        text-align: center;
+        :hover {
+            background: #63a4b1;
+        }
+    `,
 }
 
 const ListingSearchBar = ({ onSelectedListingTypeChanged, defaultListingType, listingTypes, filterByEnums, dataSource, onSearchResults }) => {
@@ -108,6 +122,40 @@ const ListingSearchBar = ({ onSelectedListingTypeChanged, defaultListingType, li
                 meetsCriteria = false
             }
 
+            /* 
+                createdAt
+                listingBuildingStatus
+                listingLocation
+                listingPriceRange
+                listingStyle
+                listingTitle
+                slug
+                itemCountry {
+                    id
+                    countrySlug
+                    countryName
+                }
+            */
+            const validate = (input, search) => {
+                return input.indexOf(search) == -1 ? false : true
+            }
+
+            if (
+                text.trim() != '' &&
+                !(
+                    validate(text, currentListing.createdAt) ||
+                    validate(text, currentListing.listingBuildingStatus) ||
+                    validate(text, currentListing.listingLocation) ||
+                    validate(text, currentListing.listingPriceRange) ||
+                    validate(text, currentListing.listingStyle) ||
+                    validate(text, currentListing.listingTitle) ||
+                    validate(text, currentListing.slug) ||
+                    validate(text, currentListing.itemCountry.countryName)
+                )
+            ) {
+                meetsCriteria = false
+            }
+
             // filter by country
             /* if (hasCountryFilter && currentListing.itemCountry.countryName !== country) {
                 meetsCriteria = false
@@ -145,6 +193,11 @@ const ListingSearchBar = ({ onSelectedListingTypeChanged, defaultListingType, li
         setSelectedBuildingStyle(selectedValue)
     }
 
+    const onClearFilters = () => {
+        setSelectedBuildingStatus('')
+        setSelectedBuildingStyle('')
+    }
+
     return (
         <React.Fragment>
             <S.SearchBarContainer>
@@ -162,6 +215,11 @@ const ListingSearchBar = ({ onSelectedListingTypeChanged, defaultListingType, li
                     ) : null}
                     {filterGroupByListingType.data?.buildingStyle.length ? (
                         <FilterByDropDown selected={selectedBuildingStyle} options={filterGroupByListingType.data.buildingStyle} placeholder={'Building Style'} onChange={handleBuildingTypesChange} />
+                    ) : null}
+                    {selectedBuildingStatus || selectedBuildingStyle ? (
+                        <S.ClearBtn href="#" onClick={onClearFilters}>
+                            clear
+                        </S.ClearBtn>
                     ) : null}
                 </S.FilterByGroup>
             </S.SearchBarContainer>
