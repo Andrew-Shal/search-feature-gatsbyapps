@@ -3,6 +3,7 @@ import { graphql } from 'gatsby'
 import { useState } from 'react'
 import Listings from '../searchV1/components/ListingContainer/Listings'
 import ListingSearchBar from '../../components/listingSearchBar'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 
 // This will be the listing page by country
 const ListingPageByCountry = ({ data }) => {
@@ -75,14 +76,23 @@ const ListingPageByCountry = ({ data }) => {
     return (
         <div>
             <h1>Listings for {COUNTRY.countryName}</h1>
-            <ListingSearchBar
-                onSelectedListingTypeChanged={handleListingTypeChanged}
-                listingTypes={LISTING_TYPES}
-                defaultListingType={LISTING_TYPES[0]}
-                filterByEnums={FILTER_BY_ENUMS}
-                dataSource={dataSource}
-                onSearchResults={handleSearchResults}
-            />
+            <Router>
+                <Routes>
+                    <Route
+                        path={`${COUNTRY.countrySlug}/`}
+                        element={
+                            <ListingSearchBar
+                                onSelectedListingTypeChanged={handleListingTypeChanged}
+                                listingTypes={LISTING_TYPES}
+                                defaultListingType={LISTING_TYPES[0]}
+                                filterByEnums={FILTER_BY_ENUMS}
+                                dataSource={dataSource}
+                                onSearchResults={handleSearchResults}
+                            />
+                        }
+                    ></Route>
+                </Routes>
+            </Router>
             {searchResults?.length ? <Listings listingsData={searchResults} /> : <h3>No results found</h3>}
         </div>
     )

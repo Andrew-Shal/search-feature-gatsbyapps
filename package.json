@@ -22,12 +22,15 @@
     "gatsby-plugin-sass": "^5.22.0",
     "gatsby-plugin-sharp": "^4.22.0",
     "gatsby-plugin-styled-components": "^5.22.0",
+    "gatsby-plugin-use-query-params": "^1.0.1",
     "gatsby-source-filesystem": "^4.22.0",
     "gatsby-source-graphcms": "^2.8.0",
     "gatsby-transformer-sharp": "^4.22.0",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
+    "react-router-dom": "^6.4.0",
     "sass": "^1.54.9",
-    "styled-components": "^5.3.5"
+    "styled-components": "^5.3.5",
+    "use-query-params": "^2.1.0"
   }
 }

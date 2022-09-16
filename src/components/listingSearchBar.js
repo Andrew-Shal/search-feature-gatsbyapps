@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import SearchByButtons from './SearchByButtons'
 import FilterByDropDown from './FilterByDropDown'
 
+import { useSearchParams } from 'react-router-dom'
+
 // styled component
 const S = {
     SearchBarContainer: styled.div`
@@ -40,10 +42,10 @@ const S = {
 const ListingSearchBar = ({ onSelectedListingTypeChanged, defaultListingType, listingTypes, filterByEnums, dataSource, onSearchResults }) => {
     useEffect(() => {
         console.log('data source changed: ', dataSource)
+        onSearchResults(doSearch(buildSearchParams()))
     }, [dataSource])
 
-    const [selectedListingType, setSelectedListingType] = useState(defaultListingType || listingTypes[0])
-
+    /* CONSTANTS ACTING AS DATASOURCE FOR DROPDOWNS */
     const REAL_ESTATE_FILTERS = filterByEnums.RealEstateFilterByEnums
     const HOTEL_FILTERS = filterByEnums.HotelFilterByEnums
     const LAND_FILTERS = filterByEnums.LandFilterByEnums
@@ -54,13 +56,40 @@ const ListingSearchBar = ({ onSelectedListingTypeChanged, defaultListingType, li
         [LAND_FILTERS.id]: { data: LAND_FILTERS.data },
     }
 
-    console.log('FILTERS: ', FILTERS)
+    // HANDLE QUERY PARAMS IF PASSED IN THE URL TO INITALIZE STATES
+    const [queryParams, setQueryParams] = useSearchParams()
+    const qp_searchKeyword = queryParams.get('search')
+    const qp_BuildingStyle = queryParams.get('style')
+    const qp_BuildingStatus = queryParams.get('status')
+    const qp_ListingType = queryParams.get('type')
+
+    console.log('queryParams: ', queryParams)
+
+    // STATES
+    const [searchText, setSearchText] = useState(qp_searchKeyword || '')
+
+    const possibleListingType = listingTypes.find((lt) => lt.value === qp_ListingType)
+    const [selectedListingType, setSelectedListingType] = useState(possibleListingType || defaultListingType || listingTypes[0])
+
+    const [filterGroupByListingType, setFilterGroupByListingType] = useState(FILTERS[selectedListingType.value])
+
+    const validBuildingStatus = filterGroupByListingType?.data?.buildingStatus.includes(qp_BuildingStatus)
+    const validBuildingType = filterGroupByListingType?.data?.buildingStyle.includes(qp_BuildingStyle)
+
+    const [selectedBuildingStatus, setSelectedBuildingStatus] = useState(validBuildingStatus ? qp_BuildingStatus : '')
+    const [selectedBuildingStyle, setSelectedBuildingStyle] = useState(validBuildingType ? qp_BuildingStyle : '')
+
+    const init = () => {
+        // update datasource based on starting states.
+        onSelectedListingTypeChanged(null, selectedListingType)
+    }
+
+    useEffect(() => {
+        init()
+    }, [])
 
     const handleSearchByChange = (updatedValue) => {
-        console.log('[handleSearchByChange]')
-
-        // update filters
-        console.log('handleSearchByChange: ', updatedValue.value)
+        console.log('[handleSearchByChange]: ', updatedValue.value)
         setFilterGroupByListingType(FILTERS[updatedValue.value])
 
         setSelectedBuildingStatus('')
@@ -70,13 +99,24 @@ const ListingSearchBar = ({ onSelectedListingTypeChanged, defaultListingType, li
         setSelectedListingType(updatedValue)
     }
 
-    const [filterGroupByListingType, setFilterGroupByListingType] = useState(FILTERS[selectedListingType.value])
+    const updateURLSearchParam = (keys, values) => {
+        console.log('[updateURLSearchParam]', keys, values)
+        let updatedSearchParams = new URLSearchParams(queryParams.toString())
 
-    const [searchText, setSearchText] = useState('')
+        for (let i = 0; i < keys.length; i++) {
+            if (values[i] == '' || values[i] == null) {
+                updatedSearchParams.delete(keys[i])
+            } else {
+                updatedSearchParams.set(keys[i], values[i])
+            }
+        }
+        setQueryParams(updatedSearchParams.toString())
+    }
 
     const handleSearchTextChange = (e) => {
         console.log('[handleSearchTextChange]')
         setSearchText(e.target.value)
+        updateURLSearchParam(['search'], [e.target.value])
     }
 
     const buildSearchParams = () => {
@@ -88,16 +128,8 @@ const ListingSearchBar = ({ onSelectedListingTypeChanged, defaultListingType, li
         }
     }
 
-    const handleSearchBtnClicked = () => {
-        console.log('[handleSeachBtnClicked]')
-
-        onSearchResults(doSearch(buildSearchParams()))
-    }
-
     const doSearch = (searchParams) => {
-        // onSearchResults()
         console.log('searching...')
-
         console.log('searchParams: ', searchParams)
 
         // js code to do filtering based on search params
@@ -109,36 +141,15 @@ const ListingSearchBar = ({ onSelectedListingTypeChanged, defaultListingType, li
         const text = searchParams.searchingFor
 
         const filteredData = dataSource.reduce((filteredArr, currentListing) => {
+            const validate = (needle, haystack) => haystack.toLowerCase().includes(needle)
+
             // sets to true for all listings and updates to false when a criteria is not met
             let meetsCriteria = true
 
             // filter for building types
-            if (hasBuildingTypeFilter && currentListing.listingStyle !== searchParams.buildingStyle) {
-                meetsCriteria = false
-            }
-
+            if (hasBuildingTypeFilter && currentListing.listingStyle !== searchParams.buildingStyle) meetsCriteria = false
             // filter for building statuses
-            if (hasBuildingStatusFilter && currentListing.listingBuildingStatus !== searchParams.buildingStatus) {
-                meetsCriteria = false
-            }
-
-            /* 
-                createdAt
-                listingBuildingStatus
-                listingLocation
-                listingPriceRange
-                listingStyle
-                listingTitle
-                slug
-                itemCountry {
-                    id
-                    countrySlug
-                    countryName
-                }
-            */
-            const validate = (input, search) => {
-                return input.indexOf(search) == -1 ? false : true
-            }
+            if (hasBuildingStatusFilter && currentListing.listingBuildingStatus !== searchParams.buildingStatus) meetsCriteria = false
 
             if (
                 text.trim() != '' &&
@@ -156,17 +167,8 @@ const ListingSearchBar = ({ onSelectedListingTypeChanged, defaultListingType, li
                 meetsCriteria = false
             }
 
-            // filter by country
-            /* if (hasCountryFilter && currentListing.itemCountry.countryName !== country) {
-                meetsCriteria = false
-            } */
-
             // determines if items should be in filtered listing
-            if (meetsCriteria) {
-                filteredArr.push(currentListing)
-            }
-
-            // only item left to do is to handle search by
+            if (meetsCriteria) filteredArr.push(currentListing)
 
             return filteredArr
         }, [])
@@ -175,54 +177,74 @@ const ListingSearchBar = ({ onSelectedListingTypeChanged, defaultListingType, li
         return filteredData
     }
 
-    const [selectedBuildingStatus, setSelectedBuildingStatus] = useState('')
-    const [selectedBuildingStyle, setSelectedBuildingStyle] = useState('')
-
     useEffect(() => {
-        console.log('selectedBuildingStatus,selectedBuildingStyle has been updated')
         onSearchResults(doSearch(buildSearchParams()))
     }, [selectedBuildingStatus, selectedBuildingStyle])
 
     const handleBuildingStatusChange = (selectedValue) => {
         console.log('[handleBuildingStatusChange]')
+        updateURLSearchParam(['status'], [selectedValue])
         setSelectedBuildingStatus(selectedValue)
     }
 
     const handleBuildingTypesChange = (selectedValue) => {
         console.log('handleBuildingTypesChange')
+        updateURLSearchParam(['style'], [selectedValue])
         setSelectedBuildingStyle(selectedValue)
     }
 
-    const onClearFilters = () => {
+    const onClearFilters = (e) => {
+        e.preventDefault()
+        updateURLSearchParam(['status', 'style'], [null, null])
         setSelectedBuildingStatus('')
         setSelectedBuildingStyle('')
     }
 
+    const handleSubmit = (e) => {
+        console.log('[handleSubmit]')
+        e.preventDefault()
+        onSearchResults(doSearch(buildSearchParams()))
+    }
+
     return (
         <React.Fragment>
-            <S.SearchBarContainer>
-                <SearchByButtons selected={selectedListingType} searchByTypes={listingTypes} onSearchByChange={handleSearchByChange} />
-                <input className="searchbar" type="text" value={searchText} onChange={handleSearchTextChange} placeholder={`Search ${selectedListingType.label}`} />
-                <input className="searchSubmit" type="button" onClick={handleSearchBtnClicked} value="Ok" />
-                <S.FilterByGroup>
-                    {filterGroupByListingType.data?.buildingStatus.length ? (
-                        <FilterByDropDown
-                            selected={selectedBuildingStatus}
-                            options={filterGroupByListingType.data.buildingStatus}
-                            placeholder={'Building Status'}
-                            onChange={handleBuildingStatusChange}
-                        />
-                    ) : null}
-                    {filterGroupByListingType.data?.buildingStyle.length ? (
-                        <FilterByDropDown selected={selectedBuildingStyle} options={filterGroupByListingType.data.buildingStyle} placeholder={'Building Style'} onChange={handleBuildingTypesChange} />
-                    ) : null}
-                    {selectedBuildingStatus || selectedBuildingStyle ? (
-                        <S.ClearBtn href="#" onClick={onClearFilters}>
-                            clear
-                        </S.ClearBtn>
-                    ) : null}
-                </S.FilterByGroup>
-            </S.SearchBarContainer>
+            <form onSubmit={handleSubmit}>
+                <S.SearchBarContainer>
+                    <SearchByButtons selected={selectedListingType} searchByTypes={listingTypes} onSearchByChange={handleSearchByChange} />
+                    <input
+                        className="searchbar"
+                        type="text"
+                        value={searchText}
+                        onSubmit={handleSearchTextChange}
+                        onChange={handleSearchTextChange}
+                        placeholder={`Search ${selectedListingType.label}`}
+                    />
+                    <input className="searchSubmit" type="submit" value="Ok" />
+                    <S.FilterByGroup>
+                        {filterGroupByListingType.data?.buildingStatus.length ? (
+                            <FilterByDropDown
+                                selected={selectedBuildingStatus}
+                                options={filterGroupByListingType.data.buildingStatus}
+                                placeholder={'Building Status'}
+                                onChange={handleBuildingStatusChange}
+                            />
+                        ) : null}
+                        {filterGroupByListingType.data?.buildingStyle.length ? (
+                            <FilterByDropDown
+                                selected={selectedBuildingStyle}
+                                options={filterGroupByListingType.data.buildingStyle}
+                                placeholder={'Building Style'}
+                                onChange={handleBuildingTypesChange}
+                            />
+                        ) : null}
+                        {selectedBuildingStatus || selectedBuildingStyle ? (
+                            <S.ClearBtn href="#" onClick={onClearFilters}>
+                                clear
+                            </S.ClearBtn>
+                        ) : null}
+                    </S.FilterByGroup>
+                </S.SearchBarContainer>
+            </form>
         </React.Fragment>
     )
 }
