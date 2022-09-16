@@ -42,10 +42,12 @@ const S = {
 const ListingSearchBar = ({ onSelectedListingTypeChanged, defaultListingType, listingTypes, filterByEnums, dataSource, onSearchResults }) => {
     useEffect(() => {
         console.log('data source changed: ', dataSource)
-        onSearchResults(doSearch(buildSearchParams()))
+        const sp = buildSearchParams()
+        setQueryParams(updateURLSearchParam(['type'], [sp.listingType.value]))
+        onSearchResults(doSearch(sp))
     }, [dataSource])
 
-    /* CONSTANTS ACTING AS DATASOURCE FOR DROPDOWNS */
+    // ======= CONSTANTS ACTING AS DATASOURCE FOR DROPDOWNS =======
     const REAL_ESTATE_FILTERS = filterByEnums.RealEstateFilterByEnums
     const HOTEL_FILTERS = filterByEnums.HotelFilterByEnums
     const LAND_FILTERS = filterByEnums.LandFilterByEnums
@@ -55,6 +57,7 @@ const ListingSearchBar = ({ onSelectedListingTypeChanged, defaultListingType, li
         [HOTEL_FILTERS.id]: { data: HOTEL_FILTERS.data },
         [LAND_FILTERS.id]: { data: LAND_FILTERS.data },
     }
+    // ======= END OF CONSTANTS ACTING AS DATASOURCE FOR DROPDOWNS =======
 
     // HANDLE QUERY PARAMS IF PASSED IN THE URL TO INITALIZE STATES
     const [queryParams, setQueryParams] = useSearchParams()
@@ -65,40 +68,28 @@ const ListingSearchBar = ({ onSelectedListingTypeChanged, defaultListingType, li
 
     console.log('queryParams: ', queryParams)
 
-    // STATES
+    // ======= STATES =======
     const [searchText, setSearchText] = useState(qp_searchKeyword || '')
-
     const possibleListingType = listingTypes.find((lt) => lt.value === qp_ListingType)
     const [selectedListingType, setSelectedListingType] = useState(possibleListingType || defaultListingType || listingTypes[0])
-
     const [filterGroupByListingType, setFilterGroupByListingType] = useState(FILTERS[selectedListingType.value])
-
     const validBuildingStatus = filterGroupByListingType?.data?.buildingStatus.includes(qp_BuildingStatus)
     const validBuildingType = filterGroupByListingType?.data?.buildingStyle.includes(qp_BuildingStyle)
-
     const [selectedBuildingStatus, setSelectedBuildingStatus] = useState(validBuildingStatus ? qp_BuildingStatus : '')
     const [selectedBuildingStyle, setSelectedBuildingStyle] = useState(validBuildingType ? qp_BuildingStyle : '')
+    // ======= END OF STATES =======
 
     const init = () => {
         // update datasource based on starting states.
         onSelectedListingTypeChanged(null, selectedListingType)
     }
 
+    // only on initial mount this runs
     useEffect(() => {
         init()
     }, [])
 
-    const handleSearchByChange = (updatedValue) => {
-        console.log('[handleSearchByChange]: ', updatedValue.value)
-        setFilterGroupByListingType(FILTERS[updatedValue.value])
-
-        setSelectedBuildingStatus('')
-        setSelectedBuildingStyle('')
-
-        onSelectedListingTypeChanged(selectedListingType, updatedValue)
-        setSelectedListingType(updatedValue)
-    }
-
+    // ======= UTILITY/HELPER FUNCTIONS =========
     const updateURLSearchParam = (keys, values) => {
         console.log('[updateURLSearchParam]', keys, values)
         let updatedSearchParams = new URLSearchParams(queryParams.toString())
@@ -110,24 +101,17 @@ const ListingSearchBar = ({ onSelectedListingTypeChanged, defaultListingType, li
                 updatedSearchParams.set(keys[i], values[i])
             }
         }
-        setQueryParams(updatedSearchParams.toString())
+        return updatedSearchParams.toString()
     }
 
-    const handleSearchTextChange = (e) => {
-        console.log('[handleSearchTextChange]')
-        setSearchText(e.target.value)
-        updateURLSearchParam(['search'], [e.target.value])
-    }
+    const buildSearchParams = () => ({
+        buildingStatus: selectedBuildingStatus,
+        buildingStyle: selectedBuildingStyle,
+        listingType: selectedListingType,
+        searchingFor: searchText,
+    })
 
-    const buildSearchParams = () => {
-        return {
-            buildingStatus: selectedBuildingStatus,
-            buildingStyle: selectedBuildingStyle,
-            listingType: selectedListingType,
-            searchingFor: searchText,
-        }
-    }
-
+    // MAIN SEARCH LOGIC
     const doSearch = (searchParams) => {
         console.log('searching...')
         console.log('searchParams: ', searchParams)
@@ -173,38 +157,58 @@ const ListingSearchBar = ({ onSelectedListingTypeChanged, defaultListingType, li
             return filteredArr
         }, [])
 
-        console.log('filteredData: ', filteredData)
         return filteredData
     }
+    // ======= END OF UTILITY/HELPER FUNCTIONS =========
 
-    useEffect(() => {
-        onSearchResults(doSearch(buildSearchParams()))
-    }, [selectedBuildingStatus, selectedBuildingStyle])
+    // ========== SEARCH BAR HANDLERS ==========
+    const handleSearchByChange = (updatedValue) => {
+        console.log('[handleSearchByChange]: ', updatedValue.value)
+        if (selectedListingType.value == updatedValue.value) return
+        setFilterGroupByListingType(FILTERS[updatedValue.value])
 
-    const handleBuildingStatusChange = (selectedValue) => {
-        console.log('[handleBuildingStatusChange]')
-        updateURLSearchParam(['status'], [selectedValue])
-        setSelectedBuildingStatus(selectedValue)
-    }
-
-    const handleBuildingTypesChange = (selectedValue) => {
-        console.log('handleBuildingTypesChange')
-        updateURLSearchParam(['style'], [selectedValue])
-        setSelectedBuildingStyle(selectedValue)
-    }
-
-    const onClearFilters = (e) => {
-        e.preventDefault()
-        updateURLSearchParam(['status', 'style'], [null, null])
         setSelectedBuildingStatus('')
         setSelectedBuildingStyle('')
+
+        onSelectedListingTypeChanged(selectedListingType, updatedValue)
+        setSelectedListingType(updatedValue)
     }
 
+    const handleSearchTextChange = (e) => {
+        console.log('[handleSearchTextChange]')
+        setSearchText(e.target.value)
+        setQueryParams(updateURLSearchParam(['search'], [e.target.value]))
+    }
     const handleSubmit = (e) => {
         console.log('[handleSubmit]')
         e.preventDefault()
         onSearchResults(doSearch(buildSearchParams()))
     }
+    // ========== END OF SEARCH BAR HANDLERS ==========
+
+    useEffect(() => {
+        const sp = buildSearchParams()
+        setQueryParams(updateURLSearchParam(['style', 'status'], [sp.buildingStyle, sp.buildingStatus]))
+        onSearchResults(doSearch(buildSearchParams()))
+    }, [selectedBuildingStatus, selectedBuildingStyle])
+
+    // ========== DROPDOWN FILTER HANDLERS ==========
+    const handleBuildingStatusChange = (selectedValue) => {
+        console.log('[handleBuildingStatusChange]')
+        setSelectedBuildingStatus(selectedValue)
+    }
+    const handleBuildingTypesChange = (selectedValue) => {
+        console.log('handleBuildingTypesChange')
+        setSelectedBuildingStyle(selectedValue)
+    }
+    const onClearFilters = (e) => {
+        console.log('[onClearFilters]')
+        e.preventDefault()
+        setQueryParams(updateURLSearchParam(['status', 'style'], [null, null]))
+        setSelectedBuildingStatus('')
+        setSelectedBuildingStyle('')
+    }
+    // ========== END OF DROPDOWN FILTER HANDLERS ==========
 
     return (
         <React.Fragment>

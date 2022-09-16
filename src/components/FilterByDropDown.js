@@ -20,7 +20,7 @@ const F = {
 
 const FilterByDropDown = ({ selected, options, placeholder, onChange }) => {
     const handleOnChange = (e) => {
-        console.log('FilterByDropDown changed value: ', e.target.value)
+        console.log('[FilterByDropDown - handleOnChange]')
 
         const selectedOption = options.find((option) => option === e.target.value)
         onChange(selectedOption)
